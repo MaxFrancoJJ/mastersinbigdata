@@ -1,0 +1,365 @@
+---
+title: "Social Network Analysis"
+author: "Group E: Christopher Stehling, Maximiliano Franco, Esther Chaelin Lee, Amanda Marques, Meng-Chen Hung, Utkarsh Khemka, Antonio Carvalho"
+date: "1/10/2019"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+On this first assignment, applying the basic functions of the Igraph package is required. The following datasets are going to be used:
+
+* Actors dataset - undirected graph - : For the 2005 Graph Drawing conference a data set was provided of the IMDB movie database. We will use a reduced version of this dataset, which derived all actor-actor collaboration edges where the actors co-starred in at least 2 movies together between 1995 and 2004. 
+
+* Wikipedia Dataset - directed graph - . The vertices of this network are wikipedia pages. The label of each vertex is the title of the wikipedia page. Edges represent hyperlinks between wikipedia pages; that is, if there is an edge from page A to page B, it means that page A has an hyperlink to page B. The dataset is available at: https://www.cs.upc.edu/~CSN/lab/wikipedia.gml
+
+
+You have to complete the code chunks in this document but also analyze the results, extract insights and describe them in an understandable way.
+
+<span style="color:blue">Please, write all your conclusions in blue</span>.
+
+
+# Loading data
+
+In this section, the goal is loading the datasets given, building the graph and ---> analyzing basics metrics. Include the edge or node attributes you consider.
+
+Describe the values provided by summary function on the graph object.
+
+```{r}
+#loading the libraries
+install.packages("igraph", repos = 'http://cran.us.r-project.org')
+install.packages("DirectedClustering", repos = 'http://cran.us.r-project.org')
+install.packages("devtools", repos = 'http://cran.us.r-project.org')
+library(igraph)
+library(DirectedClustering)
+library(devtools)
+install_github('brooksandrew/Rsenal')
+library(Rsenal)
+require('igraph')
+install.packages("splitstackshape", repos = 'http://cran.us.r-project.org')
+library(dplyr)
+library(splitstackshape)
+install.packages("sna", repos = 'http://cran.us.r-project.org')
+library(sna)
+install.packages("intergraph", repos = 'http://cran.us.r-project.org')
+library(intergraph)
+```
+
+```{r}
+#loading the data
+#actors
+edges <- read.table('imdb_actor_edges.tsv', header= T)
+key <- read.table('imdb_actors_key.tsv', header=T, sep= '\t' )
+edges$connection <-  paste(edges$from, ",", edges$to)
+g_actors <- graph.data.frame(edges, directed= FALSE)
+summary(g_actors)
+
+#wikipedia
+g_wiki <- read.graph("https://www.cs.upc.edu/~CSN/lab/wikipedia.gml",format=c("gml"))
+summary(g_wiki)
+```
+###Actors Graphy Analysis###
+<span style="color:blue"> The actors graph is undirected; actors are collaborating and acting with each other. This imples that there is no way for an actor to work with another actor without getting the other actor involved.
+Each node in the actors graph has a name, which is the name of the actors. Lastly, the actors graph is weighted and it has 17577 nodes (actors) and 287074 edges (movies) connecting the nodes (actors).
+The name (vertex) attribute is of type character, and the weight and connection attributes are of type numeric.
+
+###Wikipedia Graphy Analysis###
+<span style="color:blue"> The wikipedia graph is directed, meaning link always links one page to another without requiring the other link to link back. It is not weighted and its nodes do not have a name. It is consisted of 27475 nodes (Wikipedia articles) and 85729 edges (links between the articles).
+The vertex attributes - id and wikiid - are of type numeric and the label attribute is of type character.
+
+_____________________________________
+
+# Degree distribution
+Represent the degree distribution of both networks. For directed graphs, compute the total degree distribution considered the graph as undirected, the in-degree distribution and the out-degree distribution.
+*How do these distributions look like? Are they similar? What about their means? And their standard deviations with respect to the mean?*
+```{r}
+#actors
+deg_actors <- igraph::degree(g_actors)
+hist(deg_actors, main="Histogram of node degree Actors", breaks = 300, xlim = range(0:350))
+sd(deg_actors)
+mean(deg_actors)
+sd(deg_actors) / mean(deg_actors)
+
+#wiki, total
+deg_wiki_total <- igraph::degree(g_wiki, mode = "total")
+hist(deg_wiki_total, main="Histogram of node degree Wiki -- Total-degree", breaks = 600, xlim = range(0:70))
+sd(deg_wiki_total)
+mean(deg_wiki_total)
+sd(deg_wiki_total) / mean(deg_wiki_total)
+
+#wiki, in
+deg_wiki_in <- igraph::degree(g_wiki, mode="in")
+hist(deg_wiki_in, main="Histogram of node degree Wiki -- In-degree", breaks = 600, xlim = range(0:70))
+sd(deg_wiki_in)
+mean(deg_wiki_in)
+sd(deg_wiki_in) / mean(deg_wiki_in)
+
+#wiki, out
+deg_wiki_out <- igraph::degree(g_wiki, mode="out")
+hist(deg_wiki_out, main="Histogram of node degree Wiki -- Out-degree", breaks = 600, xlim = range(0:70))
+sd(deg_wiki_out)
+mean(deg_wiki_out)
+sd(deg_wiki_out) / mean(deg_wiki_out)
+```
+<span style="color:blue"> The distributions are all skewed to the right side.
+The mean of undirected graph actors (~33) is higher than that of directed graph Wikipedia (~6.2), which indicates that on average, each actor is connected to more other actors than wikipedia articles are linked amongst each other.
+The mean of wikipedia in and out degree is the same (~3.1), which makes sense because it is a closed network of which you take the average. In a closed network, the total amount of incoming links must be equal to the amount of outgoing links.
+
+<span style="color:blue"> When comparing SD/mean of the actors graph to SD/mean of the Wikipedia graph, we noticed that the value for the Wikipedia graph is higher than that of the actors graph. This is because the difference between strongly and weakly connected articles on Wikipedia is higher than the difference between strongly and weakly connected actors in actors graph.
+
+<span style="color:blue"> The fact that the values of SD/mean for deg_wiki_out and deg_wiki_in are higher than those for deg_wiki_total indicates that there is a huge variance in the amount of in and out links of articles.
+
+_____________________________________
+
+# Network Diameter and Average Path Length
+Compare the network diameter and the average path length of both networks. Consider the actors graph as unweighted.
+Definition network diameter: The length of the shortest path between the most distanced nodes of a graph.
+*Does the Wikipedia graph have a larger diameter than the actors graph? Why? What about the average path length? *
+```{r}
+# Network diameter
+actors_dia <- diameter(g_actors, directed = FALSE, unconnected = TRUE, weights = NA)
+actors_dia
+
+wiki_dia <- diameter(g_wiki, directed = TRUE, unconnected = TRUE)
+wiki_dia
+
+# Average Path Length
+actors_avg_path <- mean_distance(g_actors, directed = FALSE, unconnected = TRUE)
+actors_avg_path
+
+wiki_avg_path <- mean_distance(g_wiki, directed = TRUE, unconnected = TRUE)
+wiki_avg_path
+```
+<span style="color:blue"> The network diameter is larger for wikipedia (16) than that of the actors dataset (41). This means that you would have to click through more hyperlinks on Wikipedia to reach the most distanct articles than you would have to watch movies to reach the most distant actor. This is due to the largeness of Wikipedia covering a magnitude of diverse and unrelated topics. At the same time, the number of movie genres is not as diverse as all the topics covered on Wikipedia and actors asually do not specialize on only one genre, but rather play in movies of varying genres. Moreover, the wikipedia graph is directed whereas the actors graph is undirected. 
+
+_____________________________________
+
+Compare the global clustering coefficient and the average local clustering coefficient of both networks. Consider all graphs as undirected and unweighted.
+Transitivity -a friend of a friend. IN LinkedIn good if transitivity low!
+*Does Wikipedia network have a larger clustering coefficient than the actors graph? Why?*
+```{r}
+# Global clustering coefficient and average local clustering coefficient of actors dataset
+actors_global_coef <- transitivity(g_actors, type = c("globalundirected"), weights = NULL)
+print(actors_global_coef)
+actors_avg_local_coef <- transitivity(g_actors, type = c("localaverageundirected"), weights = NULL)
+print(actors_avg_local_coef)
+
+# Global clustering coefficient and average local clustering coefficient of wikipedia dataset
+wiki_global_coef <- transitivity(g_wiki, type = c("globalundirected"), weights = NULL)
+print(wiki_global_coef)
+wiki_avg_local_coef <- transitivity(g_wiki, type = c("localaverageundirected"), weights = NULL)
+print(wiki_avg_local_coef)
+```
+<span style="color:blue"> The clustering coefficient of actors is higher than that of Wikipedia. This is again due to the fact that actors tend to play in the same movies more often than the topics in Wikipedia are intertwined. 
+As Wikipedia is covering a vast range of topics, if it had a higher degree of the correlation coefficient, it would mean that its articles are more focussed on a specific topic. In addition, a movie often features a number of actors.
+
+_____________________________________
+
+# Node importance: Centrality measures
+
+## Actors' Network
+Obtain the distribution of the number of movies made by an actor and the number of genres in which an actor starred in. It may be useful to analyze and discuss the results to be obtained in the following exercises.
+
+```{r}
+#number of movies
+hist(key$movies_95_04, breaks = 500, xlim = range(0:70))
+#number of genres
+split_data <- cSplit(key, 'genres', ',', 'long')
+df_genres <- data.frame(table(split_data$name))
+df_genres
+hist(df_genres$Freq, breaks = 10, xlim = range(0:70))
+```
+
+_____________________________________
+
+Obtain three vectors with the degree, betweeness and closeness for each vertex of the actors' graph.
+#betweenness (betweenness()), closeness (closeness()), degree (degree())
+```{r}
+#degree
+degrees <- igraph::degree(g_actors)
+
+#closeness
+closes <- igraph::closeness(g_actors)
+
+#betweenness
+betweens <- igraph::betweenness(g_actors)
+```
+
+_____________________________________
+
+Obtain the list of the 20 actors with the largest degree centrality. Show a list with the degree, betweenness, and closeness centralities, the name of the actor, the number of movies, the main genre, and the number of genres in which the actor has participated.
+*How do you explain the high degree of the top-20 list? *
+```{r}
+#merging edges and keys to one big dataframe so that we can obtain the name of an actor based on its id
+actors_total <- merge(edges, key, by.x = "from" , by.y = "id", sort = TRUE) 
+g_actors_total <- graph.data.frame(actors_total, directed= FALSE)
+
+####DEGREE
+#calculating and plotting the degree (distribution)
+deg_actors_t <- igraph::degree(g_actors_total)
+hist(deg_actors_t, main="Histogram of node degree Actors", breaks = 300, xlim = range(0:350))
+degree.distribution(g_actors_total)
+
+#creating a dataframe with each ID of an actor and its degree centrality
+deg_actors_t_df <- data.frame(degree = deg_actors_t)
+deg_actors_t_df$id <- rownames(deg_actors_t_df)
+
+#merging the original dataframe with the dataframe containing the DEGREE CENTRALITY of each actor
+actors_total_including_degree <- merge(actors_total, deg_actors_t_df, by.x = "from" , by.y = "id", sort = TRUE)
+actors_total_including_degree
+####
+
+####CLOSENESS
+#closeness calculation and visualization
+close_actors_t <- igraph::closeness(g_actors_total)
+#close_actors_t
+#hist(close_actors_t, main="Histogram of node closeness Actors", breaks = 300, xlim = range(0:350))
+#degree.distribution(g_actors_total)
+
+#Create a dataframe with each ID of an actor and its degree centrality
+close_actors_t_df <- data.frame(closeness = close_actors_t)
+close_actors_t_df$id <- rownames(close_actors_t_df)
+
+#merging the DEGREE CENTRALITY dataframe with the dataframe containing the CLOSENESS of each actor
+actors_total_including_degree_close <- merge(actors_total_including_degree, close_actors_t_df, by.x = "from" , by.y = "id", sort = TRUE)
+actors_total_including_degree_close
+####
+
+####BETWEENNESS
+#betweenness calculation and visualization
+betweens_actors_t <- igraph::betweenness(g_actors_total)
+
+#Create a dataframe with each ID of an actor and its degree centrality
+between_actors_t_df <- data.frame(betweenness = betweens_actors_t)
+between_actors_t_df$id <- rownames(between_actors_t_df)
+
+#merging the DEGREE & CLOSENESS CENTRALITY dataframe with the dataframe containing the BETWEENNESS of each actor
+actors_total_including_degree_close_betweens <- merge(actors_total_including_degree_close, between_actors_t_df, by.x = "from" , by.y = "id", sort = TRUE)
+
+####ADDING GENRES
+#calculating the number of genres for each actor
+split_data <- cSplit(key, 'genres', ',', 'long')
+df_genres <- data.frame(table(split_data$name))
+#adding the number of genres to our dataframe
+actors_total_including_degree_close_betweens_genres <- merge(actors_total_including_degree_close_betweens, df_genres, by.x = "name" , by.y = "Var1", sort = TRUE)
+actors_total_including_degree_close_betweens_genres
+
+####RENAMING COLUMNS
+#renaming the column "Freq" to "number_of_genres"
+names(actors_total_including_degree_close_betweens_genres)[names(actors_total_including_degree_close_betweens_genres) == "Freq"] <- "number_of_genres"
+actors_total_including_degree_close_betweens_genres
+
+#Creating the final dataframe used to query the top 20
+actors_df_final <- unique(actors_total_including_degree_close_betweens_genres[,c("name", "degree", "closeness", "betweenness", "movies_95_04", "main_genre", "number_of_genres")])
+actors_df_final[order(-actors_df_final$degree),][1:20,]
+```
+<span style="color:blue"> 19 out of 20 of the Top 20 actors with the highest degree centrality are adult movie actors. In this specific industry, since the number of movies the actors produce is higher, they are connected to more actors. 
+
+_____________________________________
+
+Obtain the list of the 20 actors with the largest betweenness centrality . Show a list with the degree, betweenness, and closeness centralities, the name of the actor, the number of movies, the main genre, and the number of genres in which the actor has participated.
+*Is this list similar to the one obtained for degree centrality? Why? How do you explain the high betweenness of the top-20 list?*
+
+```{r}
+actors_df_final[order(-actors_df_final$betweenness),][1:20,]
+```
+<span style="color:blue"> It is not similiar to the list obtained for degree centrality as this list includes only two adult movie actors. The number of movies shot by these actors is also lower; however, the number of genres is higher since adult movie actors usually do not tend to appear in non-adult movies. Since the actors of this list appear in a variety of genres, they tend to bridge between actors of different genres.
+
+_____________________________________
+
+Obtain the list of the 20 actors with the largest closeness centrality . Show a list with the degree, betweenness, and closeness centralities, the name of the actor, the number of movies, the main genre, and the number of genres in which the actor has participated.
+*Is this list similar to the one obtained for degree and betweenness centralities? Why? How do you explain the high closeness of the top-20 list? *
+```{r}
+actors_df_final[order(-actors_df_final$closeness),][1:20,]
+```
+<span style="color:blue"> This list of actors is similiar to the one obtained from the Top 20 with the highest betweenness in terms of the variety of genres and number of movies. However, the degree centrality is higher for the actors in this list. What is striking is that the the actors with the highest degree values also have high closeness values.
+
+<span style="color:blue"> While the actors with the highest betweenness are connecting clusters of people, the actors from this list are the "biggest names" amongst thousands of actors, who played in the most popular movies with other equally famous actors. As the so-called famous actors tend to play with equally famous actors who also have a lot connections (degrees), everytime a famous actor gets to play with an equally famous actor, both of their big networks contribute to their high closeness value.
+
+
+_____________________________________
+
+## Wikipedia
+
+Obtain the list of the 20 Wikipedia pages with the largest out-degree centrality . Show a list with the outdegree, betweenness, and closeness centralities, and degree prestige, the Wikipedia identifier, and the title of the page (label).
+*How do you explain the high degree of the top-20 list? *
+
+```{r}
+# Out-degree calculation of Wiki
+outdeg_wiki_t <- igraph::degree(g_wiki, mode =c("out"))
+outdeg_wiki_t
+
+# Betweenness and Closeness calculation of Wiki
+betw_wiki_t <- igraph::betweenness(g_wiki, directed = T)
+close_wiki_t <- igraph::closeness(g_wiki, mode = "total", weights=NA)
+
+# Prestige calculation of Wiki
+wiki_adj <- get.adjacency(g_wiki, sparse= F)
+prestige_wiki_t <- prestige(wiki_adj)
+
+# Create a outdeg_wiki_t_df
+outdeg_wiki_t_df <- data.frame(outdegree = outdeg_wiki_t)
+outdeg_wiki_t_df$id <- rownames(outdeg_wiki_t_df)
+# Create a close_wiki_t_df
+close_wiki_t_df <- data.frame(closeness = close_wiki_t)
+close_wiki_t_df$id <- rownames(close_wiki_t_df)
+# Create a betw_wiki_t_df
+betw_wiki_t_df <- data.frame(betweenness = betw_wiki_t)
+betw_wiki_t_df$id <- rownames(betw_wiki_t_df)
+# Create prestige_wiki_t_df
+prestige_wiki_t_df <- data.frame(prestige = prestige_wiki_t)
+prestige_wiki_t_df$id <- rownames(prestige_wiki_t_df)
+
+# Convert wikipedia igraph to a dataframe 
+wiki_list <- igraph::as_data_frame(g_wiki, what = "both")
+wiki_list
+wiki_df <- data.frame(wiki_list$vertices)
+wiki_df$id2 <- wiki_df$id +1
+
+# Merge wiki_df with outdeg_wiki_t_df
+wiki_including_outdeg <- merge(wiki_df, outdeg_wiki_t_df, by.x = "id2", by.y = "id")
+
+# Merge wiki_including_outdeg with close_wiki_t_df
+wiki_including_outdeg_close <- merge(wiki_including_outdeg, close_wiki_t_df, by.x = "id2", by.y = "id")
+
+# Merge wiki_including_outdeg_close with prestige_wiki_t_df
+wiki_including_outdeg_close_prestige <- merge(wiki_including_outdeg_close, prestige_wiki_t_df, by.x = "id2", by.y = "id")
+
+# Merge wiki_including_outdeg_close_prestige with betw_wiki_t_df
+wiki_including_outdeg_close_prestige_betw <- merge(wiki_including_outdeg_close_prestige, betw_wiki_t_df, by.x = "id2", by.y = "id")
+wiki_including_outdeg_close_prestige_betw
+
+#Creating the final dataframe used to query the top 20
+wiki_df_final <- unique(wiki_including_outdeg_close_prestige_betw[,c("wikiid", "label", "outdegree", "betweenness", "closeness",  "prestige")])
+wiki_df_final
+wiki_df_final[order(-wiki_df_final$outdegree),][1:20,]
+```
+<span style="color:blue"> Since the nature of a list cotaining articles is to direct the reader to the respective article, each of those Wikipedia pages naturally has a high number of outdegrees, namely the number of articles it links to. In the case of List of mathematics articles (S), the article links to 565 mathematics articles starting with the letter "S".
+_____________________________________
+
+Obtain the list of the 20 Wikipedia pages with the largest betweenness centrality . Show a list with the outdegree, betweenness, and closeness centralities, and degree prestige, the Wikipedia identifier, and the title of the page (label).
+*How do you explain the high betweenness of the top-20 list?*
+```{r}
+wiki_df_final[order(-wiki_df_final$betweenness),][1:20,]
+```
+<span style="color:blue"> The high betweenness centrality of these Wikipedia pages is for the fact that they are applicable to a wide variety of topics, and therefore serve as the link for multiple articles. For example, Calculus, which is ranked first, is an elemental part of physics and therefore encompassing basically every part of our lives. Similiarily, Microsoft, which is the creator of the most used operating system of today's world, servs as the plattform for magnitude of applications built on top of Windows. As the world is becoming more and more technological and thereby affecting every part of our lives, it is only natural that an operating system serves as a connector of diverse areas in a network.
+
+_____________________________________
+
+Obtain the list of the 20 Wikipedia pages with the largest closeness centrality . Show a list with the outdegree, betweenness, and closeness centralities, and degree prestige, the Wikipedia identifier, and the title of the page (label).
+*How do you explain the high closeness of the top-20 list?*
+```{r}
+wiki_df_final[order(-wiki_df_final$closeness),][1:20,]
+```
+<span style="color:blue"> The high closeness can be explained by the fact that these articles are essential for a "community" of articles or a broad topic that are linked closely to other broad topics with a high closeness. Judaism, for example, is very essential for the broad range of religions and serves as the foundation of Christianity. Consequently, it is also closely connected to the very broad topics of culture, countries and history.
+
+_____________________________________
+
+# Final project proposal
+Write a short proposal for your final project.
+
+<span style="color:blue"> We want to analyze recent politically important events using the Twitter data.  
+We have 2 proposals:
+-Protests in Hong Kong
+-Impeachment of President Donald Trump
