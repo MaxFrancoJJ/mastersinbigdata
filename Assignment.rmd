@@ -1,0 +1,520 @@
+---
+title: "Berlin"
+author: "MBD-A1-Group E"
+date: "28/09/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+if(!'ggplot2'%in%installed.packages()){
+  install.packages('ggplot2')}
+if(!'ggthemes'%in%installed.packages()){
+  install.packages('ggthemes')}
+if(!'nlme'%in%installed.packages()){
+  install.packages('nlme')}
+if(!'gapminder'%in%installed.packages()){
+  install.packages('gapminder')}
+if(!'gganimate'%in%installed.packages()){
+  install.packages('gganimate')}
+if(!'ggExtra'%in%installed.packages()){
+  install.packages('ggExtra')}
+if(!'psych'%in%installed.packages()){
+  install.packages('psych')}
+if(!'reshape2'%in%installed.packages()){
+  install.packages('reshape2')}
+if(!'dplyr'%in%installed.packages()){
+  install.packages('dplyr')}
+if(!'nycflights13'%in%installed.packages()){
+  install.packages('nycflights13')}
+if(!'ggcorrplot'%in%installed.packages()){
+  install.packages('ggcorrplot')}
+if(!'waffle'%in%installed.packages()){
+  install.packages('waffle')}
+if(!'tidyr'%in%installed.packages()){
+  install.packages('tidyr')}
+if(!'scales'%in%installed.packages()){
+  install.packages('scales')}
+if(!'ggalt'%in%installed.packages()){
+  install.packages('ggalt')}
+if(!'data.table'%in%installed.packages()){
+  install.packages('data.table')}
+if(!'data.table'%in%installed.packages()){
+  install.packages('data.table')}
+if(!'data.table'%in%installed.packages()){
+  install.packages('data.table')}
+if(!'extrafont'%in%installed.packages()){
+  install.packages('extrafont')}
+if(!'lubridate'%in%installed.packages()){
+  install.packages('lubridate')}
+if(!'DT'%in%installed.packages()){
+  install.packages('DT')}
+if(!'grid'%in%installed.packages()){
+  install.packages('grid')}
+if(!'gridExtra'%in%installed.packages()){
+  install.packages('gridExtra')}
+if(!"prettydoc" %in% installed.packages()) {
+  install.packages("prettydoc")}
+if(!"devtools" %in% installed.packages()) {
+  install.packages("devtools")}
+if(!"tidyverse" %in% installed.packages()) {
+  install.packages("tidyverse")}
+if(!"ggdark" %in% installed.packages()) {
+  install.packages("ggdark")}
+if(!"here" %in% installed.packages()) {
+  install.packages("here")}
+if(!"png" %in% installed.packages()) {
+  install.packages("png")}
+if(!"gifski" %in% installed.packages()) {
+  install.packages("gifski")}
+if(!"data.table" %in% installed.packages()) {
+  install.packages("data.table")}
+if(!"forcats" %in% installed.packages()) {
+  install.packages("forcats")}
+if(!"tufte" %in% installed.packages()) {
+  install.packages("tufte")}
+if(!"colorspace" %in% installed.packages()) {
+  install.packages("colorspace")}
+if(!"viridisLite" %in% installed.packages()) {
+  install.packages("viridisLite")}
+if(!"formatR" %in% installed.packages()) {
+  install.packages("formatR")}
+if(!"DiagrammeR" %in% installed.packages()) {
+  install.packages("DiagrammeR")}
+if(!"xaringan" %in% installed.packages()) {
+  install.packages("xaringan")}
+if(!"ggridges" %in% installed.packages()) {
+  install.packages("ggridges")}
+if(!"GGally" %in% installed.packages()) {
+  install.packages("GGally")}
+
+library(plotly)
+library(ggplot2)
+library(ggthemes)
+library(nlme)
+library(gganimate)
+library(gapminder)
+library(ggExtra)
+library(psych)
+library(reshape2)
+library(dplyr)
+library(nycflights13)
+library(ggcorrplot)
+library(waffle)
+library(tidyr)
+library(scales)
+library(ggalt)
+library(data.table)
+library(extrafont)
+library(lubridate)
+library(DT)
+library(grid)
+library(gridExtra)
+library(prettydoc)
+library(devtools)
+library(tidyverse)
+library(ggdark)
+library(here)
+library(png)
+library(gifski)
+library(forcats)
+library(tufte)
+library(colorspace)
+library(viridisLite)
+library(formatR)
+library(DiagrammeR)
+library(xaringan)
+library(ggridges)
+library(GGally)
+```
+
+
+
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r cars,echo=FALSE, warning=FALSE}
+Data<- read.csv("Dataviz data.csv")
+bdata <- Data[ Data$State == "Berlin" , ]
+bdt<- data.table(bdata)
+bdata<- data.table(bdata)
+```
+
+The chosen dataset refers to tourism in the States of Berlin and Brandenburg. The data mainly contains information about guests from all the countries around the world who travel to both these states. For each group of guests travelling to a certain region it is possible to know how many nights in total did they stay over. Different levels of granularity are present in terms of guest's origins, dates and visited districts. The report intends to give the mayor of Berlin a general overview of how the tourism industry has been evolving over time and where the mayor should focus to leverage the cities tourism infrastructures and attractions. Therefore, different analysis will be performed to improve future decisions regarding this economic sector.
+
+```{r theme, echo=FALSE, warning=FALSE}
+theme_set(theme_bw())
+fill_color = 'white'
+decoration_color = 'steel blue'
+main1_color = 'dark blue'
+main2_color = '#6633ff'
+
+TeamE_theme<-theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank(),
+  plot.title = element_text(size = 10, hjust = 0.2, color = '#0066CC'),
+  axis.title = element_text(size = 10, hjust = 0.5, color = '#003366'),
+  axis.text = element_text(colour = decoration_color, size = '#336699'),
+  axis.ticks = element_blank(),
+  axis.line = element_line(colour = decoration_color, size=0.3, linetype = "dotdash"), 
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  strip.text = element_text(size = 12, color = decoration_color),
+  panel.background = element_blank(),
+  strip.background =element_blank(),
+  plot.background = element_blank(),
+  legend.text	= element_text(size = 10, hjust = 0.5, color = '#330033'), 
+  legend.position = c(0.815, 0.27),
+  legend.key = element_blank(),
+  legend.title = element_blank()
+)
+
+theme_set(TeamE_theme)
+```
+
+
+
+
+## Including Plots
+```{r year, echo = FALSE, warning=FALSE}
+data_year <- bdata[,list(total_guests=sum(Guests)), by="Year"]
+plot_year2<- ggplot(as.data.table(data_year), aes(x=Year, y=total_guests, color="blue")) + geom_line(color="blue", size=2)+ geom_point(color="black", size=4) + ggtitle("Number of total guests per year")+ theme(plot.title = element_text(hjust=0.5)) + scale_y_continuous(labels = unit_format(unit = 'M', scale = 1e-6))
+plot_year2
+```
+
+
+
+
+
+
+The total number of guests visiting Berlin has been increasing over years. Showing an average increase of 6% per year, Berlin is nowadays more procured by guests. However, the percentage increase has been decreasing from 2010 to 2016, from 9% on the first year to around 3% in the last year of the analysis.
+
+
+```{r months, echo=FALSE}
+bdata$Month <- as.factor(bdata$Month)
+german <- levels(bdata$Month)
+ordered_factors <- c("Januar", "Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember")
+bdata$Month <- factor(bdata$Month, levels = ordered_factors, ordered= T)
+
+ggplot(bdata, aes(x= Month, y=Guests)) + 
+  geom_bar(stat = "identity", width = 0.5, fill="dark blue" )+ 
+  theme_minimal()+ 
+  scale_fill_brewer(palette="Greens") +
+  theme(axis.text.x = element_text(angle = 45)) +
+  scale_y_continuous(labels = unit_format(unit = 'M', scale = 1e-6)) + ggtitle("Number of total guests per month")+ theme(plot.title = element_text(hjust=0.5))
+  
+```
+
+
+
+
+The fluctuation on the number of nights per month reflects the most demanded months in terms of visits to Berlin. By analizing the graph, it is possible to conclude that there are peaks in July and October, with the high season being between June and October. Being July the month with the best weather seems to be a reasonable explanation for the high number of guests going to Berlin in that month. On the other hand, the October peak might be connected with the October fest. This is because, even though it is not in Berlin, guests might travel to Germany for the event and take their time to visit Berlin too.
+
+
+
+```{r waffle, echo=FALSE, warning=FALSE}
+
+a <- bdata %>% group_by(Country.of.Origin) %>%filter(Country.of.Origin == c('Germany', 'Foreign countries', 'Without details of residence')) %>% summarise(total_visits = sum(Guests)) %>% arrange(desc(total_visits))
+
+
+
+a$total_visits <- a$total_visits/100000
+
+waffle(a$total_visits, rows= 10, size = 1, legend_pos = 'none', title = 'Distribution of Guests', xlab = 'Germany vs Rest of the World vs Not identified')
+```
+
+
+
+
+
+
+The graph describes the total amount of guests that visits Germany, split into the ones that come from Germany, from outside it and for those we do not have information about. 
+It is clear that the most amount of visitors come from Germany, representing about 60% of the total guests. The guests we do not have information does not represent a significant amount.
+
+
+
+
+## Interactive Continent plot (begining of phase 2)
+
+```{r pressure, echo=FALSE, warning=FALSE}
+Cleaned <-bdata[,.(guest = sum(Guests) ), by =  c("Continent","Year","Mo")][order(Continent,Year,Mo)]
+
+Cleaned_1 <- Cleaned %>% as_tibble() %>% mutate(
+  date= Year+(Mo-1)/12
+)
+
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+d <- Cleaned_1 %>%
+  filter(Year > 2009, Continent %in% c("Africa","Asia","North America","Oceania","South America","Europe")) %>%
+  accumulate_by(~date)
+
+p <- d %>%
+  plot_ly(
+    x = ~date, 
+    y = ~guest,
+    split = ~Continent,
+    frame = ~frame, 
+    type = 'scatter',
+    mode = 'lines', 
+    line = list(simplyfy = F)
+  ) %>% 
+  layout(
+    xaxis = list(
+      title = "Date",
+      zeroline = F
+    ),
+    yaxis = list(
+      title = "Guests",
+      zeroline = F
+    )
+  ) %>% 
+  animation_opts(
+    frame = 100, 
+    transition = 0, 
+    redraw = FALSE
+  ) %>%
+  animation_slider(
+    hide = T
+  ) %>%
+  animation_button(
+    x = 1, xanchor = "right", y = 0, yanchor = "bottom"
+  )
+p
+```
+The graph shows the different amount of guests travelling to Berlin from different continents. As it was predicted, Europe is the continent having the highest number of guests over the years, with an average of 0.8M guests visiting Berlin. Different reasons might explain this trend. The most obvious is that it is the continent where Berlin is located, therefore being of easy accessibility. Other factors might be job-related issues or the higher economic power of the population. The large difference in the number of guests from Europe and from other continents lead to the decision of further exploring the situation located in the first geographical area.
+```{r press, echo=FALSE, warning=FALSE}
+Cleaned <-bdata[,.(guest = sum(Guests) ), by =  c("Continent","Year","Mo")][order(Continent,Year,Mo)]
+
+Cleaned_1 <- Cleaned %>% as_tibble() %>% mutate(
+  date= Year+(Mo-1)/12
+)
+
+accumulate_by <- function(dat, var) {
+  var <- lazyeval::f_eval(var, dat)
+  lvls <- plotly:::getLevels(var)
+  dats <- lapply(seq_along(lvls), function(x) {
+    cbind(dat[var %in% lvls[seq(1, x)], ], frame = lvls[[x]])
+  })
+  dplyr::bind_rows(dats)
+}
+
+d <- Cleaned_1 %>%
+  filter(Year > 2009, Continent %in% c("Africa","Asia","North America","Oceania","South America")) %>%
+  accumulate_by(~date)
+
+p <- d %>%
+  plot_ly(
+    x = ~date, 
+    y = ~guest,
+    split = ~Continent,
+    frame = ~frame, 
+    type = 'scatter',
+    mode = 'lines', 
+    line = list(simplyfy = F)
+  ) %>% 
+  layout(
+    xaxis = list(
+      title = "Date",
+      zeroline = F
+    ),
+    yaxis = list(
+      title = "Guests",
+      zeroline = F
+    )
+  ) %>% 
+  animation_opts(
+    frame = 100, 
+    transition = 0, 
+    redraw = FALSE
+  ) %>%
+  animation_slider(
+    hide = T
+  ) %>%
+  animation_button(
+    x = 1, xanchor = "right", y = 0, yanchor = "bottom"
+  )
+p
+```
+The unclarity of the fluctuation on the number of guests for other continents apart from Europe required the team to analyze it more in depth with a separate chart. Asia and North America are the second tier continents in reagrding the number of guests visiting Berlin, showing a similar pattern in terms of its peaks, which mostly happen during summer time in Europe. The last analyzed year showed that Asia has overtaken North America in the total number of guests, which can reflect its growing population. After Europe, these should be the continents where Berlin must invest the most to attract visitors. The amount of guests travelling from Africa remained relatively stable over the years and within each year. 
+
+
+
+```{r,echo=FALSE, warning=FALSE}
+tufte_dt<- bdata[(Continent!= "Other Continent" & Average.Night.by.Guest < 30) ,.(Average.Night.by.Guest,Continent) ]
+
+ggplot(tufte_dt, aes(Continent,Average.Night.by.Guest)) + 
+  geom_tufteboxplot(outlier.colour="transparent", size=0.5, color=main1_color) + ggtitle("Average Night by Guest by Continent")+ theme(plot.title = element_text(hjust=0.5)) + ylim(0,31)
+
+```
+
+This chart shows the median number of nights per continent guests. The median is very similar between all the continents, meaning that there is no correlation between the continent where guests come from and the number of nights they stay. However, in Oceania and South America there are less people staying longer than the median number of nights comparing to all the other continents. Europe is the continent where the deviation from the median is the highest, with some guests staying almost one month in Berlin.
+
+```{r map,echo=FALSE, warning=FALSE, eval=FALSE}
+trace1 <- list(
+  uid = "61c3d4", 
+  type = "choropleth", 
+  zmax = 0, 
+  zmin = 100, 
+  z = c("2010", "75936330 ", "336407 ", "2293559 ", "2090728 ", "1731228 ", "1686456 ", "1596664 ", "1584627 ", "1274527 ", "1241874 "), 
+  #z = c("2010", ".336407 ", "2.293559 ", "2.090728 ", "1.731228 ", "1.686456 ", "1.596664 ", "1.584627 ", "1.274527 ", "1.241874 "), 
+  zauto = FALSE, 
+  visible = TRUE, 
+  colorbar = list(
+    len = 395, 
+    ticks = "", 
+    title = "", 
+    nticks = 0, 
+    lenmode = "pixels", 
+    thickness = 30.000000000000004, 
+    titlefont = list(color = "rgb(0, 0, 0)"), 
+    showexponent = "all", 
+    thicknessmode = "pixels", 
+    exponentformat = "B", 
+    showticklabels = TRUE
+  ), 
+  showscale = FALSE, 
+  colorscale = list(c(0, "rgb(8, 29, 88)"),list(0.25, "rgb(34, 94, 168)"),list(0.5, "rgb(65, 182, 196)"),list(0.75, "rgb(199, 233, 180)"),list(1, "rgb(255, 255, 217)")),
+   
+  locationmode = "country names", 
+  locations = c("Gender overall earnings gap (%)", "Germany","UK", "Netherlands","Italy", "Spain", "Denmark", "France", "Switzerland", "Poland", "Sweden"), 
+  #locations = c("Gender overall earnings gap (%)","UK", "Netherlands","Italy", "Spain", "Denmark", "France", "Switzerland", "Poland", "Sweden"), 
+  reversescale = FALSE, 
+  autocolorscale = FALSE
+)
+data <- list(trace1)
+layout <- list(
+  geo = list(
+    scope = "europe", 
+    bgcolor = "rgb(217, 217, 217)", 
+    projection = list(type = "natural earth")
+  ), 
+  title = "Top 10 countries that have the highest number of guests to Berlin from  Europe.", 
+  width = 1064, 
+  height = 695, 
+  autosize = FALSE, 
+  showlegend = FALSE, 
+  paper_bgcolor = "rgb(255, 255, 255)"
+)
+p<- plot_ly()
+p<- add_trace(p, uid=trace1$uid, type=trace1$type, zmax=trace1$zmax, zmin=trace1$zmin, z=trace1$z, zauto=trace1$zauto, visible=trace1$visible, colorbar=trace1$colorbar, showscale=trace1$showscale, colorscale=trace1$colorscale, locationmode=trace1$locationmode, locations=trace1$locations, reversescale=trace1$reversescale, autocolorscale=trace1$autocolorscale)
+p<- layout(p, geo=layout$geo, title=layout$title, width=layout$width, height=layout$height, autosize=layout$autosize, showlegend=layout$showlegend, paper_bgcolor=layout$paper_bgcolor)
+p
+
+```
+
+
+
+
+**The following map is not in the markdown. However, it is highly informative in order to have a visual insight on the countries that visit these States the most.The map shows the top 10 countries with the highest number of guests travelling to Berlin. These countries are Germany, UK, Netherlands, Italy, Spain, Sweden, Poland, Switzerland, France and Denmark. Knowing Europe is the most represented continent, it was important to focus on the top 10 countries that brought the most tourists, representing 91% of the total guests of this continent. For the following analysis it was decided to leave out Germany since it is obvious it is the origin country with the highest number of guests.**
+
+
+
+```{r country, echo=FALSE, warning=FALSE}
+data_europe <- bdata[Continent=="Europe",]
+Top_10 <- data_europe[, list(sum_guests=sum(Guests)  ),by=c("Year","Country.of.Origin")][order(-sum_guests)]
+
+
+Top_10<- Top_10[Country.of.Origin!="Germany"]
+
+vector<- c("Germany", "UK", "Netherlands", "Italy", "Spain", "Denmark", "France", "Switzerland", "Poland", "Sweden")
+
+Top_10<- subset(Top_10, Country.of.Origin %in% vector)
+Top_10<- Top_10[Country.of.Origin!="Germany"]
+#View(Top_10)
+
+
+ggplot(Top_10, aes(Year, sum_guests)) +
+  geom_line(color="blue", size=1) +
+  facet_wrap(~Country.of.Origin) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ggtitle("Top 9 countries visiting Berlin per year")+ theme(plot.title = element_text(hjust=0.5))+ geom_point() + scale_y_continuous(labels = unit_format(unit = 'M', scale = 1e-3))
+
+```
+
+The charts showed above represent the change in the number of guests from each one of the 9 top origin countries visiting Berlin per year. While this figure remained relatively stable in Poland, Sweden or France, there was a small to medium increase in all the others. The UK and Spain seem to be the countries with the highest increase in the number of guests over the years. These countries are therefore more likely to be the ones representing a higher percentage of revenues for the city of Berlin. Italy and Netherlands also show a high number of guests amonng the 10 countries. 
+
+```{r dist, echo=FALSE, warning=FALSE}
+vector<- c("Germany", "UK", "Netherlands", "Italy", "Spain", "Denmark", "France", "Switzerland", "Poland", "Sweden")
+data_2<- subset(bdata, Country.of.Origin %in% vector)
+data_2 <- as.data.table(data_2)
+data_2<- data_2[Country.of.Origin!="Germany"]
+#View(data_2)
+
+data_2 <- data_2[,list(sum_guests=sum(Guests)),by=c("County.District", "Year")]
+
+biggest_districts=c("Mitte", "Charlottenburg-Wilmersdorf", "Friedrichshain-Kreuzberg", "Tempelhof-Schöneberg", "Pankow")
+
+data_2$district<- as.character(data_2$County.District)
+data_2$district[!(data_2$district %in% biggest_districts)] <- "Others"
+#View(data_2)
+
+data_3 <- data_2[, list(total_guests=sum(sum_guests)) ,by=c("district", "Year")]
+#View(data_3)
+
+Guests_per_district <- ggplot(data_3, aes(x = Year, y = total_guests))+
+  geom_col(aes(fill = district), width = 0.7) + theme(plot.title = element_text(hjust=0.5)) + theme_minimal() + theme( legend.direction = "horizontal", legend.position = 'bottom') +ggtitle("Number of guests per district and year")+ theme(plot.title = element_text(hjust=0.5))+ theme(legend.justification = c("right","bottom"))
+
+Guests_per_district <- Guests_per_district + coord_flip()
+Guests_per_district
+
+
+```
+
+
+
+
+
+The last part of the report intends to focus on the lowest granularity levels of the information. Restricting our sample data to the top 9 countries in Europe that contribute the most for the number of guests travelling to Berlin, it was found that the most visited district is Mitte, followed by Charlottenburg-Wilmersdorf. Having 30 districts in total, it is important to highlight that the 5 most visited districts represent around 80% of the guests, while the other 20% are splited among the other 25 districts. The distribution of guests per district has not suffered any changes over the years, with Mitte having been always ranked in first. 
+
+```{r heatmap, echo=FALSE, warning=FALSE}
+df2 <- subset(bdata, Country.of.Origin==c('UK','Netherlands','Spain','Italy','Denmark'))
+
+
+df3 <- subset(df2,County.District==c('Charlottenburg-Wilmersdorf','Mitte','Pankow','Friedrichshain-Kreuzberg','Tempelhof-Schöneberg'))
+
+
+ggplot(df3, aes(x =County.District, 
+                y =Country.of.Origin, 
+                fill=Average.Night.by.Guest))+geom_tile() +
+          scale_fill_gradient(low = "white", high = "steelblue")
+
+
+```
+
+
+
+
+
+
+The represented map related the top 5 visited districts with the top 5 countries that have the highest number of guests. While Mitte is the district that most of the guests, it is one of the least regarding the average number of nights by guest, specially for Dutch and Italian people. On the other side, the few guests visiting Pankow stay usually around 3 nights, not counting with Britsh population. As another insight, one can conclude that English visitors never stay in Charlottenburg-Wilmersdorf, meaning they probably only go there for a day-trip. Overall, Spanish and Danish people are the ones who stay the longest in Berlin. 
+
+
+```{r scatter, echo=FALSE, warning=FALSE}
+interactive_scatter<- bdata[,.((guest = sum(Guests)), Average_nights_spent = mean(Average.Night.by.Guest)), by = c("County.District", "Year")]
+
+interactive_scatter$Guests<- interactive_scatter$V1
+interactive_scatter<- interactive_scatter[,-3]
+#View(interactive_scatter)
+gg <- ggplot(interactive_scatter, aes(Guests, Average_nights_spent, color = County.District)) +
+  geom_point(aes(size = Guests, frame = Year)) +
+  scale_x_log10()
+ggplotly(gg)
+
+```
+Looking at the number of guests categorized by district and average number of nights spent per guest allowed the team to derive interesting insights. While Mitte and Charlottenburg-Wilmersdorf remain the most visited districts over years, those are not the districts with the highest average of nights per guest. In fact, Marzahn-Hellersdorf and Steglitz_Zehlendorf are the ones which have the highest average of nights spent per guest, which might mean those are well located districts with strong accommodation infraestructures. The first one of these even achieved 5 nights spent per guest as its average, which could be due to any event on the district. Spandau and Reinickendorf were the districts where people spent the least time. 
+Overall, Berlin should focus in Spanish and British visitors while creating conditions for visitors to stay longer in the most visited districts. At the same time, it should decentralize activities, events and other attractions to districts where there is not a high number of guests but where they are more likely to stay longer. Asia and North America are definetly two other markets that must be explored by Berlin tourism identities. 
+
